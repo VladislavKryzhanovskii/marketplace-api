@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Contracts\Factory\Post\PostFactoryInterface;
 use App\Contracts\Repository\Post\PostRepositoryInterface;
 use App\Contracts\Security\Service\User\Auth\AuthUserFetcherInterface;
-use App\Contracts\Service\Post\PostServiceInterface;
 use App\DTO\Post\CreatePostDTO;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,7 +26,6 @@ class PostController extends AbstractController
         private readonly AuthUserFetcherInterface $authUserFetcher,
         private readonly PostFactoryInterface     $postFactory,
         private readonly PostRepositoryInterface  $postRepository,
-        private readonly PostServiceInterface     $postService,
     )
     {
     }
@@ -52,7 +50,18 @@ class PostController extends AbstractController
     #[Route(name: 'paginated', methods: [Request::METHOD_GET])]
     public function get(Request $request): JsonResponse
     {
+        $paginator = $this->postRepository->getPaginator();
+        $data = [
+            'totalCount' => $total = count($paginator),
+            'pageCount' => (int)ceil($total / $request->query->getInt('limit', 10)),
+            'result' => iterator_to_array($paginator)
+        ];
 
-        $paginator = $this->postService->getPaginator();
+        $json = $this->serializer->serialize($data, 'json', [
+            AbstractNormalizer::GROUPS => 'post:details'
+        ]);
+
+        return JsonResponse::fromJsonString($json);
+
     }
 }

@@ -1,26 +1,22 @@
 <?php
 
-declare(strict_types=1);
-
 namespace App\Serializer;
 
 use App\Entity\Image;
+use App\Entity\Post;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
-use Vich\UploaderBundle\Storage\StorageInterface;
 
-/** @api */
-class ImageNormalizer implements NormalizerInterface
+class PostNormalizer implements NormalizerInterface
 {
 
-    private const ALREADY_CALLED = 'IMAGE_NORMALIZER_ALREADY_CALLED';
+    private const ALREADY_CALLED = 'POST_NORMALIZER_ALREADY_CALLED';
 
     public function __construct(
         #[Autowire(service: 'serializer.normalizer.object')]
         private readonly NormalizerInterface $normalizer,
-        private readonly StorageInterface $storage,
-        private readonly RequestStack $requestStack,
+        private readonly Security $security,
     )
     {
     }
@@ -28,12 +24,6 @@ class ImageNormalizer implements NormalizerInterface
     public function normalize($object, ?string $format = null, array $context = []): array|string|int|float|bool|\ArrayObject|null
     {
         $context[self::ALREADY_CALLED] = true;
-
-        $url = $this->requestStack->getCurrentRequest()->getUriForPath(
-            $this->storage->resolveUri($object, 'file', Image::class)
-        );
-        /** @var Image $object */
-        $object->setContentUrl($url);
 
         return $this->normalizer->normalize($object, $format, $context);
     }
@@ -45,13 +35,13 @@ class ImageNormalizer implements NormalizerInterface
             return false;
         }
 
-        return $data instanceof Image;
+        return $data instanceof Post;
     }
 
     public function getSupportedTypes(?string $format): array
     {
         return [
-            Image::class => true,
+            Post::class => true,
         ];
     }
 }

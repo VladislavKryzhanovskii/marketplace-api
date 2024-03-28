@@ -2,6 +2,7 @@
 
 namespace App\Entity;
 
+use App\Contracts\Security\Entity\AuthUserInterface;
 use App\Repository\PostRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
@@ -9,13 +10,9 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Selectable;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\Types\UlidType;
-use Symfony\Component\HttpFoundation\File\File;
-use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Uid\Ulid;
-use Vich\UploaderBundle\Mapping\Annotation as Vich;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -28,7 +25,7 @@ class Post
     private ?int $id = null;
 
     #[ORM\Column(length: 100, unique: true)]
-    #[Groups('user:details')]
+    #[Groups(['user:details', 'post:details'])]
     private ?string $ulid;
 
 
@@ -37,10 +34,11 @@ class Post
     private $description = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups('user:details')]
+    #[Groups(['user:details', 'post:details'])]
     private ?string $title = null;
 
     #[ORM\Column]
+    #[Groups(['post:details'])]
     private ?int $cost = null;
 
     #[ORM\ManyToOne(inversedBy: 'posts')]
@@ -54,8 +52,11 @@ class Post
     private ?DateTimeImmutable $updatedAt;
 
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'post', cascade: ['persist'])]
+    #[Groups(['post:details'])]
     private Collection&Selectable $images;
 
+    #[Groups(['post:details'])]
+    private bool $isOwner = false;
 
     public function __construct()
     {
@@ -71,6 +72,7 @@ class Post
         return $this->id;
     }
 
+    #[Groups(['post:details'])]
     public function getDescription(): ?string
     {
         return stream_get_contents($this->description);
@@ -175,6 +177,11 @@ class Post
         }
 
         return $this;
+    }
+
+    public function isOwner(AuthUserInterface $user): void
+    {
+        $this->isOwner = $this->owner->getUlid() === $user->getUlid();
     }
 
 }

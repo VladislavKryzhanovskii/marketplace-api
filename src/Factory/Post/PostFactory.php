@@ -24,6 +24,10 @@ class PostFactory implements PostFactoryInterface
             ->setTitle($dto->getTitle())
             ->setDescription($dto->getDescription());
 
+        if (empty($dto->getImageUlids())) {
+            return $post;
+        }
+
         foreach ($this->imageRepository->findByUlids($dto->getImageUlids()) as $image) {
             $post->addImage($image);
         }

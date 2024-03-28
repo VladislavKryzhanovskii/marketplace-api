@@ -44,7 +44,7 @@ class Image
     #[Vich\UploadableField(mapping: 'images', fileNameProperty: 'name', size: 'size')]
     private ?File $file = null;
 
-    #[Groups(['image:get', 'user:details'])]
+    #[Groups(['image:get', 'user:details', 'post:details'])]
     private ?string $contentUrl = null;
 
     #[ORM\ManyToOne(inversedBy: 'images')]

@@ -19,10 +19,7 @@ final class CreatePostDTO
     private string $description;
 
     /** @var string[] $imageUlids */
-    #[Assert\All([
-        new Assert\NotBlank(),
-        new Assert\Ulid()
-    ])]
+    #[Assert\All([new Assert\Ulid()])]
     private array $imageUlids;
 
 

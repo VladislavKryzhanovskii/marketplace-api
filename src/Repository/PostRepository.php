@@ -4,7 +4,10 @@ namespace App\Repository;
 
 use App\Contracts\Repository\Post\PostRepositoryInterface;
 use App\Entity\Post;
+use App\Util\Paginator\RequestConditionQueryWrapper;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\Query\Expr\Join;
+use Doctrine\ORM\Tools\Pagination\Paginator;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -17,7 +20,10 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class PostRepository extends ServiceEntityRepository implements PostRepositoryInterface
 {
-    public function __construct(ManagerRegistry $registry)
+    public function __construct(
+        ManagerRegistry                               $registry,
+        private readonly RequestConditionQueryWrapper $queryWrapper,
+    )
     {
         parent::__construct($registry, Post::class);
     }
@@ -31,5 +37,18 @@ class PostRepository extends ServiceEntityRepository implements PostRepositoryIn
     public function findByUlid(string $ulid): ?Post
     {
         return $this->findOneBy(['ulid' => $ulid]);
+    }
+
+    public function getPaginator(): Paginator
+    {
+        $queryBuilder = $this->createQueryBuilder('post')
+            ->addSelect(['images', 'owner'])
+            ->leftJoin('post.images', 'images', Join::ON)
+            ->join('post.owner', 'owner', Join::ON);
+
+        return new Paginator(
+            $this->queryWrapper->wrap($queryBuilder),
+            fetchJoinCollection: true
+        );
     }
 }
