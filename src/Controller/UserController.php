@@ -42,13 +42,13 @@ class UserController extends AbstractController
             return $this->json(['message' => (string)$errors], Response::HTTP_BAD_REQUEST);
         }
 
-        $user = $this->userFactory->create($dto);
+        $user = $this->userFactory->build($dto);
         $this->userRepository->save($user);
 
         return $this->json(['ulid' => $user->getUlid()], status: Response::HTTP_CREATED);
     }
 
-    #[Route('/me', name: 'me', methods: [Request::METHOD_GET])]
+    #[Route('/me', name: 'details', methods: [Request::METHOD_GET])]
     public function details(): JsonResponse
     {
         $user = $this->authUserFetcher->getAuthUser();
@@ -57,5 +57,14 @@ class UserController extends AbstractController
         ]);
 
         return JsonResponse::fromJsonString($json);
+    }
+
+    #[Route('/me', name: 'remove', methods: [Request::METHOD_DELETE])]
+    public function remove(): Response
+    {
+        $user = $this->authUserFetcher->getAuthUser();
+        $this->userRepository->remove($user);
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 }

@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class ImageFactory implements ImageFactoryInterface
 {
-    public function create(UploadedFile $file, AuthUserInterface $owner): Image
+    public function build(UploadedFile $file, AuthUserInterface $owner): Image
     {
         return (new Image())
             ->setFile($file)

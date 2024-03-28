@@ -9,5 +9,5 @@ use App\Entity\Post;
 
 interface PostFactoryInterface
 {
-    public function create(CreatePostDTO $dto, AuthUserInterface $owner): Post;
+    public function build(CreatePostDTO $dto, AuthUserInterface $owner, Post $post = new Post()): Post;
 }

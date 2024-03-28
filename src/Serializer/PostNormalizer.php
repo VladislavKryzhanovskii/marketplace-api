@@ -6,6 +6,7 @@ use App\Entity\Image;
 use App\Entity\Post;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 class PostNormalizer implements NormalizerInterface
@@ -16,6 +17,8 @@ class PostNormalizer implements NormalizerInterface
     public function __construct(
         #[Autowire(service: 'serializer.normalizer.object')]
         private readonly NormalizerInterface $normalizer,
+        #[Autowire(service: ImageNormalizer::class)]
+        private readonly NormalizerInterface $imageNormalizer,
         private readonly Security $security,
     )
     {
@@ -25,7 +28,11 @@ class PostNormalizer implements NormalizerInterface
     {
         $context[self::ALREADY_CALLED] = true;
 
-        return $this->normalizer->normalize($object, $format, $context);
+        return match ($context[AbstractNormalizer::GROUPS]) {
+            'post:details' => $this->handleDetails($object, $format, $context),
+            default => $this->normalizer->normalize($object, $format, $context),
+        };
+        
     }
 
     public function supportsNormalization($data, ?string $format = null, array $context = []): bool
@@ -42,6 +49,19 @@ class PostNormalizer implements NormalizerInterface
     {
         return [
             Post::class => true,
+        ];
+    }
+
+    private function handleDetails(Post $post, ?string $format, array $context): array
+    {
+        return [
+            'ulid' => $post->getUlid(),
+            'title' => $post->getTitle(),
+            'cost' => $post->getCost(),
+            'description' => $post->getDescription(),
+            'isOwner' => $post->getOwner()->getUserIdentifier() === $this->security->getUser()?->getUserIdentifier(),
+            'imageUrls' => $post->getImages()->map(fn(Image $image): string => $this->imageNormalizer
+                ->normalize($image, $format,$context)['contentUrl'])->toArray()
         ];
     }
 }

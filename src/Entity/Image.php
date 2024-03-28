@@ -37,10 +37,6 @@ class Image
     #[ORM\Column(nullable: true)]
     private ?int $size = null;
 
-    #[ORM\ManyToOne(inversedBy: 'images')]
-    private ?Post $post = null;
-
-
     #[Vich\UploadableField(mapping: 'images', fileNameProperty: 'name', size: 'size')]
     private ?File $file = null;
 
@@ -48,7 +44,7 @@ class Image
     private ?string $contentUrl = null;
 
     #[ORM\ManyToOne(inversedBy: 'images')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'cascade')]
     private ?User $owner = null;
 
     public function __construct()
@@ -117,18 +113,6 @@ class Image
     public function getUlid(): ?string
     {
         return $this->ulid;
-    }
-
-    public function getPost(): ?Post
-    {
-        return $this->post;
-    }
-
-    public function setPost(?Post $post): static
-    {
-        $this->post = $post;
-
-        return $this;
     }
 
     public function getContentUrl(): ?string

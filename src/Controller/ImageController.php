@@ -36,10 +36,7 @@ class ImageController extends AbstractController
             return $this->json(['message' => '"file" is required'], Response::HTTP_BAD_REQUEST);
         }
 
-        $image = $this->imageFactory->create(
-            $request->files->get('file'),
-            $this->authUserFetcher->getAuthUser()
-        );
+        $image = $this->imageFactory->build($file, $this->authUserFetcher->getAuthUser());
 
         $this->imageRepository->save($image);
 

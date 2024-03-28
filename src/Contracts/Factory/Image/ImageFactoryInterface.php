@@ -9,5 +9,5 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 interface ImageFactoryInterface
 {
-    public function create(UploadedFile $file, AuthUserInterface $owner): Image;
+    public function build(UploadedFile $file, AuthUserInterface $owner): Image;
 }

@@ -34,7 +34,6 @@ class ImageNormalizer implements NormalizerInterface
         );
         /** @var Image $object */
         $object->setContentUrl($url);
-
         return $this->normalizer->normalize($object, $format, $context);
     }
 

@@ -11,12 +11,11 @@ final class CreatePostDTO
     private int $cost;
 
     #[Assert\NotBlank]
-    #[Assert\Length(255)]
+    #[Assert\Length(max: 255)]
     private string $title;
 
-    #[Assert\NotBlank]
-    #[Assert\Length(4000)]
-    private string $description;
+    #[Assert\Length(max: 4000)]
+    private ?string $description = null;
 
     /** @var string[] $imageUlids */
     #[Assert\All([new Assert\Ulid()])]

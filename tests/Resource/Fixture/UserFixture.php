@@ -27,7 +27,7 @@ class UserFixture extends Fixture
             ->setEmail($this->getFaker()->email())
             ->setPassword($this->getFaker()->password(minLength: 10));
 
-        $user = $this->userFactory->create($dto);
+        $user = $this->userFactory->build($dto);
 
         $manager->persist($user);
         $manager->flush();

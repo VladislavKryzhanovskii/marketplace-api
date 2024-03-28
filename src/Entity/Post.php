@@ -2,17 +2,16 @@
 
 namespace App\Entity;
 
-use App\Contracts\Security\Entity\AuthUserInterface;
 use App\Repository\PostRepository;
 use DateTimeImmutable;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\Selectable;
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Serializer\Attribute\Ignore;
 use Symfony\Component\Uid\Ulid;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: PostRepository::class)]
 #[ORM\HasLifecycleCallbacks]
@@ -28,17 +27,19 @@ class Post
     #[Groups(['user:details', 'post:details'])]
     private ?string $ulid;
 
-
-    /** @var resource */
-    #[ORM\Column(type: Types::BLOB, nullable: true)]
-    private $description = null;
+    #[ORM\Column(length: 4000, nullable: true)]
+    #[Assert\Length(max: 4000)]
+    private ?string $description = null;
 
     #[ORM\Column(length: 255)]
     #[Groups(['user:details', 'post:details'])]
+    #[Assert\NotBlank]
+    #[Assert\Length(max: 255)]
     private ?string $title = null;
 
     #[ORM\Column]
     #[Groups(['post:details'])]
+    #[Assert\PositiveOrZero]
     private ?int $cost = null;
 
     #[ORM\ManyToOne(inversedBy: 'posts')]
@@ -51,12 +52,9 @@ class Post
     #[ORM\Column]
     private ?DateTimeImmutable $updatedAt;
 
-    #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'post', cascade: ['persist'])]
-    #[Groups(['post:details'])]
+    #[ORM\ManyToMany(targetEntity: Image::class)]
     private Collection&Selectable $images;
 
-    #[Groups(['post:details'])]
-    private bool $isOwner = false;
 
     public function __construct()
     {
@@ -75,7 +73,7 @@ class Post
     #[Groups(['post:details'])]
     public function getDescription(): ?string
     {
-        return stream_get_contents($this->description);
+        return $this->description;
     }
 
     public function setDescription($description): static
@@ -151,9 +149,9 @@ class Post
     }
 
     /**
-     * @return Collection&Selectable<int, Image>
+     * @return Collection<int, Image>
      */
-    public function getImages(): Collection&Selectable
+    public function getImages(): Collection
     {
         return $this->images;
     }
@@ -162,7 +160,6 @@ class Post
     {
         if (!$this->images->contains($image)) {
             $this->images->add($image);
-            $image->setPost($this);
         }
 
         return $this;
@@ -170,18 +167,13 @@ class Post
 
     public function removeImage(Image $image): static
     {
-        if ($this->images->removeElement($image)) {
-            if ($image->getPost() === $this) {
-                $image->setPost(null);
-            }
-        }
+        $this->images->removeElement($image);
 
         return $this;
     }
 
-    public function isOwner(AuthUserInterface $user): void
+    public function clearImages(): static
     {
-        $this->isOwner = $this->owner->getUlid() === $user->getUlid();
+        $this->images = new ArrayCollection();
     }
-
 }

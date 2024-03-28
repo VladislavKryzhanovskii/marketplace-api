@@ -34,6 +34,12 @@ class PostRepository extends ServiceEntityRepository implements PostRepositoryIn
         $this->getEntityManager()->flush();
     }
 
+    public function remove(Post $post): void
+    {
+        $this->getEntityManager()->remove($post);
+        $this->getEntityManager()->flush();
+    }
+
     public function findByUlid(string $ulid): ?Post
     {
         return $this->findOneBy(['ulid' => $ulid]);

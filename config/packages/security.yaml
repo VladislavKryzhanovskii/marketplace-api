@@ -26,8 +26,8 @@ security:
          - { path: ^/api/auth/token/(login|refresh), roles: PUBLIC_ACCESS }
          - { path: ^/api/users, roles: PUBLIC_ACCESS, methods: [POST] }
          - { path: ^/api/posts, roles: PUBLIC_ACCESS, methods: [GET] }
-         - { path: ^/api/users/me, roles: IS_AUTHENTICATED_FULLY }
-         - { path: ^/api/posts, roles: IS_AUTHENTICATED_FULLY, methods: [POST] }
+         - { path: ^/api/users/me, roles: IS_AUTHENTICATED_FULLY, methods: [GET, DELETE] }
+         - { path: ^/api/posts, roles: IS_AUTHENTICATED_FULLY, methods: [POST, DELETE, PUT] }
          - { path: ^/api/images, roles: IS_AUTHENTICATED_FULLY, methods: [POST] }
 
 when@test:

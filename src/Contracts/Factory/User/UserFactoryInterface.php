@@ -7,5 +7,5 @@ use App\Entity\User;
 
 interface UserFactoryInterface
 {
-    public function create(CreateUserDTO $dto): User;
+    public function build(CreateUserDTO $dto): User;
 }

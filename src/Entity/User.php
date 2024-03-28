@@ -44,7 +44,7 @@ class User implements AuthUserInterface
 
     #[ORM\OneToMany(targetEntity: Image::class, mappedBy: 'owner', orphanRemoval: true)]
     #[Groups(['user:details'])]
-    private Collection $images;
+    private Collection&Selectable $images;
 
     public function __construct()
     {

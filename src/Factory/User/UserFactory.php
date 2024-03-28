@@ -17,7 +17,7 @@ readonly class UserFactory implements UserFactoryInterface
     {
     }
 
-    public function create(CreateUserDTO $dto): User
+    public function build(CreateUserDTO $dto): User
     {
         return (new User())
             ->setEmail($dto->getEmail())

@@ -16,16 +16,16 @@ class PostFactory implements PostFactoryInterface
     {
     }
 
-    public function create(CreatePostDTO $dto, AuthUserInterface $owner): Post
+    public function build(CreatePostDTO $dto, AuthUserInterface $owner, Post $post = new Post()): Post
     {
-        $post = (new Post())
+        $post
             ->setOwner($owner)
             ->setCost($dto->getCost())
             ->setTitle($dto->getTitle())
             ->setDescription($dto->getDescription());
 
         if (empty($dto->getImageUlids())) {
-            return $post;
+            return $post->clearImages();
         }
 
         foreach ($this->imageRepository->findByUlids($dto->getImageUlids()) as $image) {

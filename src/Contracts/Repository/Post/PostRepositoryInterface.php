@@ -11,6 +11,8 @@ interface PostRepositoryInterface extends ObjectRepository, Selectable
 {
     public function save(Post $post): void;
 
+    public function remove(Post $post): void;
+
     public function findByUlid(string $ulid): ?Post;
 
     /**

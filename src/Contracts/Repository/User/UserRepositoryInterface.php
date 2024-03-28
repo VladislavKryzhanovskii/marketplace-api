@@ -10,5 +10,7 @@ interface UserRepositoryInterface extends ObjectRepository, Selectable
 {
     public function save(User $user): void;
 
+    public function remove(User $user): void;
+
     public function findByUlid(string $ulid): ?User;
 }
