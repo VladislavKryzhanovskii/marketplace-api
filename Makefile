@@ -52,3 +52,18 @@ diff:
 	${DOCKER_COMPOSE_PHP_FPM_EXEC} php bin/console doctrine:migrations:diff --no-interaction
 drop:
 	${DOCKER_COMPOSE_PHP_FPM_EXEC} php bin/console doctrine:schema:drop --force
+
+
+##################
+# JWT
+##################
+
+generate-keypair:
+	${DOCKER_COMPOSE_PHP_FPM_EXEC} php bin/console lexik:jwt:generate-keypair
+
+##################
+# Cache
+##################
+
+cache-warmup:
+	${DOCKER_COMPOSE_PHP_FPM_EXEC} php bin/console cache:warmup

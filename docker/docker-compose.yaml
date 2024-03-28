@@ -12,7 +12,9 @@ services:
         - BUILD_MODE=${BUILD_MODE}
         - INSTALL_XDEBUG=${INSTALL_XDEBUG}
     volumes:
-      - ./..:/var/www
+      - /var/www/vendor/
+      - /var/www/var/
+      - ./..:/var/www:cached
 
   nginx:
     container_name: nginx
