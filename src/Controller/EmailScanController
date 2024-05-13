@@ -1,0 +1,87 @@
+<?php
+
+namespace App\Controller;
+
+
+use Doctrine\ORM\EntityManagerInterface;
+use GuzzleHttp\Client;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+
+class EmailScanController extends AbstractController
+{
+    private const INTERNAL_SUCCESS_STATUS_CODE = 0;
+
+    public function __construct(
+        private readonly Client $client,
+        private readonly EntityManagerInterface $entityManager,
+    ) {}
+
+    public function scan(Request $request): JsonResponse
+    {
+        $emailContent = $request->getContent();
+        $senderIpAddress = $request->getClientIp();
+        $senderEmail = $request->request->get('sender_email');
+
+        $potentialContainsWarm = !preg_match('/(cialis|pharmacy|discount|money|earn|cash)/i', $emailContent);
+
+        if ($this->checkMaliciousIp($senderIpAddress) || $this->checkMaliciousEmail($senderEmail)) {
+            return $this->json(['message' => 'Вы находитесь в чёрном списке'], 403);
+        }
+
+        $hasAttachments = $request->files->count() > 0;
+
+        $attachmentChecks = [];
+        foreach ($request->files->all() as $file) {
+            $result = $this->scanFileForViruses($file->getPathname());
+            if (!$result['safe']) {
+                $attachmentChecks[] = 'Вложенный файл ' . $file->getClientOriginalName() . ' содержит вирус!';
+            }
+        }
+
+        return $this->json([
+            'has_worm' => $potentialContainsWarm,
+            'has_attachments' => $hasAttachments,
+            'attachment_checks' => $attachmentChecks,
+        ], !empty($attachmentChecks) ? 403 : 200);
+    }
+
+
+    private function checkMaliciousIp(string $ipAddress): bool
+    {
+        // Проверка наличия IP-адреса в черном списке в БД
+        $blacklistedIp = $this->entityManager->getRepository(BlacklistedIp::class)->findOneBy(['ip' => $ipAddress]);
+        return $blacklistedIp !== null;
+    }
+
+    private function checkMaliciousEmail(string $email): bool
+    {
+        // Проверка наличия почтового адреса в черном списке в БД
+        $blacklistedEmail = $this->entityManager->getRepository(BlacklistedEmail::class)->findOneBy(['email' => $email]);
+        return $blacklistedEmail !== null;
+    }
+
+    private function scanFileForViruses(string $filePath): array
+    {
+        $response = $this->client->post('https://www.virustotal.com/vtapi/v2/file/scan', [
+            'multipart' => [
+                [
+                    'name' => 'apikey',
+                    'contents' => $_ENV['VIRUSTOTAL_API_KEY'],
+                ],
+                [
+                    'name' => 'file',
+                    'contents' => fopen($filePath, 'r'),
+                ],
+            ],
+        ]);
+
+        $result = json_decode($response->getBody()->getContents(), true);
+
+        return [
+            'safe' => $result['response_code'] === self::INTERNAL_SUCCESS_STATUS_CODE,
+            'scan_result' => $result,
+        ];
+    }
+}
